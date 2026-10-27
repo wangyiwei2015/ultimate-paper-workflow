@@ -23,8 +23,18 @@ figs_src/figN_*.typ                Typst：多 panel 组版 + (a)(b) 标签 + �
 figs_output/figN_*.pdf             终态图件，LaTeX 直接 \includegraphics
         │  make paper
         ▼
-main.tex + latex_templates/ + latex_refs/refs.bib  →  main.pdf
+latex_paper/main.tex + ../latex_templates/ + ../latex_refs/refs.bib
+        │                                    →  latex_paper/main.pdf
 ```
+
+**路径约定（改动前必读）**：正文只有一个入口 `latex_paper/main.tex`，
+`make paper` 用 `latexmk -cd` 把编译工作目录切到 `latex_paper/`，所以
+
+- 指向仓库其他目录的路径一律带 `../`：`\input{../latex_templates/preamble.tex}`、
+  `\addbibresource{../latex_refs/refs.bib}`、`{../figs_output/fig1_overview}`；
+- 所有辅助文件与 PDF 都落在 `latex_paper/` 内，**根目录永远干净**；
+- 别改成 `cd latex_paper && latexmk`：`FIND_TOOL` 是相对路径，`cd` 之后会解析失败
+  （见 §4.1 的 INVARIANT），`-cd` 是 latexmk 内部 chdir，不破坏这个前提。
 
 ---
 
@@ -34,7 +44,7 @@ main.tex + latex_templates/ + latex_refs/refs.bib  →  main.pdf
 |---|---|---|
 | **MATLAB** (`matlab/figN_*.m`) | 数据曲线/曲面/散点；坐标轴框；颜色 | 标题 `title`、图例 `legend`、colorbar、`xlabel/ylabel`、任何文字标注、面板字母 (a)(b) |
 | **Typst** (`figs_src/figN_*.typ`) | 面板排布、`(a)(b)` 标签、箭头/文字/比例尺等图内标注、字体 | 放数据、改数据、直接编辑 SVG |
-| **LaTeX** (`main.tex`) | `\includegraphics` + `\caption` + `\label`、正文、参考文献 | 直接引用 `matlab/svg_out/*.svg`、在图里写标注、用 `subfig` 手工拼图 |
+| **LaTeX** (`latex_paper/main.tex`) | `\includegraphics` + `\caption` + `\label`、正文、参考文献 | 直接引用 `matlab/svg_out/*.svg`、在图里写标注、用 `subfig` 手工拼图 |
 
 **判据**：图里出现的任何一个字符，都应该能在 `figs_src/*.typ` 里被 `grep` 到；
 MATLAB 产出的 SVG 用文本编辑器打开应当**不含任何文本节点**。
@@ -46,7 +56,8 @@ MATLAB 产出的 SVG 用文本编辑器打开应当**不含任何文本节点**�
 | 路径 | 用途 | 是否入库 |
 |---|---|---|
 | `Makefile` | 唯一构建入口 | ✅ |
-| `main.tex` | 稿件主文件 | ✅ |
+| `latex_paper/main.tex` | 稿件主文件（正文只放这里） | ✅ |
+| `latex_paper/main.pdf` | 编译产物，与正文同目录（`make clean` 保留） | ❌ 见 `.gitignore` |
 | `agent.md` | 本文件 | ✅ |
 | `setup/windows.ps1` | Windows 环境安装（PowerShell，自提权，两阶段） | ✅ |
 | `setup/macos.sh` | macOS 环境安装（brew） | ✅ |
@@ -63,6 +74,10 @@ MATLAB 产出的 SVG 用文本编辑器打开应当**不含任何文本节点**�
 | `matlab/build_all_figs.m` | 批量运行所有 `fig*.m` | ✅ |
 | `matlab/svg_out/*.svg` | MATLAB 中间产物 | ✅ |
 | `fonts/` | Typst/LaTeX 引用的字体（.ttf/.otf） | 空目录，按需添加 |
+
+> 根目录只放**目录**与入口文件（`Makefile` / `agent.md` / `README.md`）。
+> LaTeX 的 `.aux/.log/.fls/.bbl/main.pdf` 全部落在 `latex_paper/`，
+> 不会污染根目录。
 
 ---
 
@@ -196,7 +211,28 @@ multirow cleveref` 五个包，直到 `make paper` 才炸。
 
 或者直接让 `make check-env` 告诉你缺什么（它内部走
 `sh setup/find_toolchain.sh --check-sty latex_templates/preamble.tex`，
-缺包会 exit 1）。
+缺包会 exit 1，**并把缺失名单直接拼进 `tlmgr install ...` 命令**，连
+`sudo` 版和 `--usermode` 版各给一条，复制即用）。`make paper` 会先跑同一个
+检查（`make tex-deps` 门禁），缺包时立刻中止、不启动 latexmk —— 否则错误会
+埋进 `main.log`，latexmk 还会留下坏掉的 `.fdb_latexmk`，下次只说
+`gave an error in previous invocation`。
+
+**macOS 的 BasicTeX 是同一个坑。** `brew install --cask basictex`（或 pkg 装的
+BasicTeX）也是 scheme-basic，同样缺 `siunitx / biblatex / cleveref / enumitem /
+multirow`，`make paper` 报 `File 'siunitx.sty' not found`。而
+`/usr/local/texlive/<year>basic` 属主是 `root`，系统级 `tlmgr install` 需要 sudo。
+没有 sudo 时走 **usermode**（装到 `~/Library/texmf`，即 `TEXMFHOME`，pdflatex
+立即可见，无需改 PATH）：
+
+```sh
+tlmgr init-usertree                     # 只需一次
+tlmgr --usermode install siunitx biblatex cleveref enumitem multirow logreq
+```
+
+注意 `biblatex` 会连锁要求 `logreq`（还有 `etoolbox`/`url`/`ifthen`），
+`latexmk` 只报第一个缺的包，所以补完要再跑一次 `make check-env` 直到
+`N LaTeX packages ... resolve`。之后**所有 tlmgr 操作都要带 `--usermode`**
+（包括 `tlmgr --usermode update --all`），否则会去动只读的系统树而报权限错。
 
 ---
 
@@ -209,10 +245,11 @@ multirow cleveref` 五个包，直到 `make paper` 才炸。
 | `make matlab` | 运行 `matlab/build_all_figs.m` → 重生成 `matlab/svg_out/*.svg` |
 | `make figs` | 把 `figs_src/*.typ` 编译为 `figs_output/*.pdf`（增量） |
 | `make sync` | `make matlab && make figs` |
-| `make paper` | `latexmk -pdf` → `main.pdf` |
+| `make tex-deps` | 只校验 preamble 里每个 `\usepackage` 是否都装全；缺包会打印可直接粘贴的 `tlmgr install ...` 并 exit 1（`make paper` 会自动先跑它） |
+| `make paper` | `latexmk -cd -pdf` → `latex_paper/main.pdf`（前置 `tex-deps` 门禁，缺包直接中止，不启动 latexmk） |
 | `make all` | 全链路：matlab → figs → paper |
-| `make clean` | 清 LaTeX 辅助文件（保留 PDF） |
-| `make distclean` | 清辅助文件 + 所有生成的图与 `main.pdf` |
+| `make clean` | 清 LaTeX 辅助文件（保留 `latex_paper/main.pdf`） |
+| `make distclean` | 清辅助文件 + 所有生成的图与 `latex_paper/main.pdf` |
 
 ---
 
@@ -220,7 +257,9 @@ multirow cleveref` 五个包，直到 `make paper` 才炸。
 
 - [ ] **1. MATLAB**：新建 `matlab/figN_name.m`
   - 函数名 = 文件名；尺寸用 `figW/figH`（85 mm 单栏 / 170 mm 双栏）
-  - `Position=[0 0 figW figH]`、`Color='w'`、坐标轴 `Position=[0 0 1 1]`
+  - **单位陷阱**：MATLAB 没有 `'millimeters'`，图窗/纸张属性只能用 `'centimeters'`
+    → `Units/PaperUnits='centimeters'`、`Position=[0 0 figW/10 figH/10]`
+  - `Position=[0 0 figW/10 figH/10]`、`Color='w'`、坐标轴 `Position=[0 0 1 1]`
   - `XTick/YTick` 置空，**不加** title/legend/xlabel/annot
   - 导出到 `matlab/svg_out/figN_name.svg`
 - [ ] **2. Typst**：新建 `figs_src/figN_name.typ`
@@ -230,8 +269,8 @@ multirow cleveref` 五个包，直到 `make paper` 才炸。
   - 多 panel 用 `#panels(columns: 2, gutter: 4mm)[...][...]`
   - 图内标注用 `#annot(dx: 55%, dy: 20%)[...]`
 - [ ] **3. 构建**：`make figs`（会只重新编译改动过的 `.typ`）
-- [ ] **4. LaTeX**：在 `main.tex` 中
-      `\paperfigure{fig:name}{Caption.}{figs_output/figN_name}`
+- [ ] **4. LaTeX**：在 `latex_paper/main.tex` 中
+      `\paperfigure{fig:name}{Caption.}{../figs_output/figN_name}`（注意 `../`）
 - [ ] **5. 检查**：`make all` 零 error；PDF 中字体与正文一致，无重复标注
 
 ---
@@ -264,11 +303,12 @@ multirow cleveref` 五个包，直到 `make paper` 才炸。
 **Don't**
 
 - 不要把 `matlab/svg_out/*.svg` 直接 `\includegraphics` 进 LaTeX。
+- 不要在 `latex_paper/main.tex` 里写不带 `../` 的仓库内路径（编译 cwd 是 `latex_paper/`）。
 - 不要在 MATLAB 里写任何文字（含 `text()`、`annotation()`）。
 - 不要在 Typst 里画数据。
 - 不要手动编辑 `figs_output/*.pdf`——它是产物，永远由 `make figs` 重建。
 - 不要往 `figs_src/` 放不带下划线的公共文件（会被误编译成图）。
-- 不要提交 `*.aux *.log *.fls *.fdb_latexmk *.synctex.gz *.bbl *.bcf`、`main.pdf`（见 `.gitignore`）。
+- 不要提交 `*.aux *.log *.fls *.fdb_latexmk *.synctex.gz *.bbl *.bcf`、`latex_paper/main.pdf`（见 `.gitignore`）。
 - 不要在 cmd / PowerShell 里跑 `make`——没有 `sh`，make 起不来；用 Git Bash。
 - 不要把 Git 的 `usr\bin` 加进系统 PATH（会覆盖 Windows 的 `find`/`sort`）。
 
@@ -283,6 +323,8 @@ multirow cleveref` 五个包，直到 `make paper` 才炸。
 | `FATAL: typst not found ...` | 真的没装：跑 `setup\windows.ps1` / `setup/macos.sh`，然后**开新终端**。若显示 `[fix] ... using <目录>` 说明是装了但没进 PATH，脚本已自动兜住 |
 | `FATAL: latexmk ...` 但 `pdflatex` 是 OK 的 | TeX Live 装成 scheme-basic 了，缺 `latexmk` 包；见 §4.3 用 tlmgr 补 |
 | LaTeX 报 `File 'xxx.sty' not found` | scheme-basic 缺包。**先跑 `make check-env`**，它会逐条列出缺哪个 `.sty`；再按 §4.3 的 tlmgr 命令补 |
+| `make paper` 一开始就打印 `[FATAL] xxx.sty not found` + `make paper aborted` | 就是 `tex-deps` 门禁拦下来了。照它给的 `tlmgr install ...` 装完，再 `make clean && make paper` |
+| latexmk 只说 `gave an error in previous invocation` / `Nothing to do`，不给真错误 | latexmk 记住了上次失败状态，不会自己重跑。先 `make clean` 再看 `main.log` 末尾；真实错误（通常是缺 `.sty`）会出现在那里 |
 | `make check-env` 报一串 `[FATAL] xxx.sty not found` | 就是上面的缺包；`make check-env` 已经把答案直接给你了 |
 | `make check-env` 直接 exit 1，不给看后面的检查 | 设计如此：必需工具（make/sh/typst/latexmk/pdflatex）缺一个就停，先修再跑 |
 | Windows 脚本重复安装已装好的 VS Code | 已改为二进制探测；若仍复现，检查 `where code` 是否可用 |
@@ -296,6 +338,8 @@ multirow cleveref` 五个包，直到 `make paper` 才炸。
 | `make matlab` 报 MATLAB 未找到 | 见 §4，确认 `matlab -batch "disp(version)"` 可用 |
 | SVG 导出后有白边/尺寸不符 | 检查 `PaperPositionMode='manual'` 与 `PaperSize`；旧版 MATLAB 走 `print -dsvg` 分支 |
 | LaTeX 报 `File ...fig not found` | 先 `make figs`；确认 `figs_output/` 中有对应 PDF |
+| 编译后图/参考文献丢失，报 `File '../figs_output/x.pdf' not found` | 编译 cwd 是 `latex_paper/`（`latexmk -cd`），仓库内路径必须带 `../`；少了 `../` 就指到了 `latex_paper/figs_output/` |
+| 根目录又冒出 `main.aux` / `main.pdf` | 有人直接在根目录跑了 `pdflatex main.tex`，或用的是旧布局；`make clean` 会连带清掉根目录残留 |
 | 引用显示 `[?]` | `refs.bib` 为空或 key 拼错；跑 `make paper` 让 biber 参与 |
 | 图内出现两套字体 | 说明 MATLAB 里写了文字，回到 §2 清掉 |
 

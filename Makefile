@@ -26,8 +26,9 @@ FONTS_DIR       := fonts
 
 REF_DIR         := latex_refs
 TMPL_DIR        := latex_templates
-MAIN_TEX        := main.tex
-MAIN_PDF        := main.pdf
+PAPER_DIR       := latex_paper
+MAIN_TEX        := $(PAPER_DIR)/main.tex
+MAIN_PDF        := $(PAPER_DIR)/main.pdf
 PREAMBLE        := $(TMPL_DIR)/preamble.tex
 
 # Files in figs_src whose name starts with "_" are shared includes
@@ -71,7 +72,7 @@ RED    := \033[31m
 BOLD   := \033[1m
 RESET  := \033[0m
 
-.PHONY: help check-env matlab figs sync paper all clean distclean dirs
+.PHONY: help check-env matlab figs sync tex-deps paper all clean distclean dirs
 
 # =============================================================
 #  0. Help / environment check
@@ -83,6 +84,7 @@ help: check-env
 	@printf "  $(GREEN)make matlab$(RESET)     - run $(MATLAB_DIR)/$(MATLAB_ENTRY).m -> regenerate raw SVG plots\n"
 	@printf "  $(GREEN)make figs$(RESET)       - compile $(TYP_SRC_DIR)/*.typ -> $(FIG_OUT_DIR)/*.pdf\n"
 	@printf "  $(GREEN)make sync$(RESET)       - full figure chain (matlab + figs)\n"
+	@printf "  $(GREEN)make tex-deps$(RESET)   - verify every preamble \\\\usepackage resolves (auto-run by 'paper')\n"
 	@printf "  $(GREEN)make paper$(RESET)      - latexmk -> $(MAIN_PDF)\n"
 	@printf "  $(GREEN)make all$(RESET)        - matlab -> figs -> paper\n"
 	@printf "  $(GREEN)make clean$(RESET)      - remove LaTeX aux files (keeps PDFs)\n"
@@ -112,7 +114,7 @@ check-env:
 		&& printf "  [$(GREEN)OK$(RESET)]      vscode   : $$(command -v $(VSCODE_BIN))\n" \
 		|| printf "  [$(YELLOW)OPTIONAL$(RESET)] vscode   : editor CLI not on PATH\n"
 	@printf "$(CYAN)=== Layout ===$(RESET)\n"
-	@for d in $(MATLAB_DIR) $(MATLAB_SVG_DIR) $(TYP_SRC_DIR) $(FIG_OUT_DIR) $(FONTS_DIR) $(REF_DIR) $(TMPL_DIR); do \
+	@for d in $(MATLAB_DIR) $(MATLAB_SVG_DIR) $(TYP_SRC_DIR) $(FIG_OUT_DIR) $(FONTS_DIR) $(REF_DIR) $(TMPL_DIR) $(PAPER_DIR); do \
 		if [ -d "$$d" ]; then printf "  [$(GREEN)OK$(RESET)]      $$d/\n"; \
 		else printf "  [$(RED)MISSING$(RESET)]  $$d/\n"; fi; \
 	done
@@ -161,9 +163,27 @@ sync: matlab figs
 # =============================================================
 #  4. LaTeX -> main.pdf
 # =============================================================
-paper:
+# Gate: every \usepackage of the preamble must resolve BEFORE latexmk
+# starts.  Without this, a missing .sty surfaces as
+# "File `x.sty' not found" buried in main.log, and latexmk leaves a
+# poisoned .fdb_latexmk behind -- so the NEXT run only says
+# "gave an error in previous invocation" instead of the real cause.
+# The check prints the exact tlmgr command to paste, then we abort.
+tex-deps:
+	@$(FIND_TOOL) --check-sty $(PREAMBLE) || { \
+		printf "\n$(RED)--> make paper aborted: LaTeX packages missing (see list above).$(RESET)\n"; \
+		printf "$(RED)    After installing them, run: make clean && make paper$(RESET)\n"; \
+		exit 1; }
+
+# -cd (NOT "cd $(PAPER_DIR) &&"): latexmk chdirs into the directory of
+# main.tex itself, so latex_paper/main.tex reaches the rest of the repo
+# as ../latex_templates/... and ../figs_output/... while every aux file
+# and the PDF land in latex_paper/ instead of cluttering the repo root.
+# Doing it inside latexmk also keeps the FIND_TOOL invariant: that path
+# is RELATIVE and must be resolved before any chdir happens.
+paper: tex-deps
 	@printf "$(CYAN)--> latexmk: $(MAIN_TEX) -> $(MAIN_PDF)$(RESET)\n"
-	@$(FIND_TOOL) $(LATEXMK) -pdf -interaction=nonstopmode -synctex=1 -file-line-error $(MAIN_TEX)
+	@$(FIND_TOOL) $(LATEXMK) -cd -pdf -interaction=nonstopmode -synctex=1 -file-line-error $(MAIN_TEX)
 	@printf "$(GREEN)--> Paper built: $(MAIN_PDF)$(RESET)\n"
 
 # =============================================================
@@ -179,8 +199,11 @@ all: matlab figs paper
 # =============================================================
 clean:
 	@printf "$(YELLOW)--> Removing LaTeX aux files...$(RESET)\n"
-	@$(FIND_TOOL) $(LATEXMK) -c $(MAIN_TEX) 2>/dev/null || true
-	@rm -f *.synctex.gz *.bcf *.run.xml *.fls *.fdb_latexmk
+	@$(FIND_TOOL) $(LATEXMK) -cd -c $(MAIN_TEX) 2>/dev/null || true
+	@rm -f $(PAPER_DIR)/*.synctex.gz $(PAPER_DIR)/*.bcf $(PAPER_DIR)/*.run.xml \
+	       $(PAPER_DIR)/*.fls $(PAPER_DIR)/*.fdb_latexmk
+	@rm -f *.aux *.log *.bbl *.bcf *.blg *.out *.fls *.fdb_latexmk *.run.xml \
+	       *.synctex.gz *.toc *.lof *.lot
 	@printf "$(GREEN)--> Clean (PDFs kept).$(RESET)\n"
 
 distclean: clean

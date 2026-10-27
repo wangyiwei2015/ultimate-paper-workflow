@@ -22,7 +22,7 @@
 latexmkrc-*
 
 # Final paper (rebuild with: make paper)
-/main.pdf
+/latex_paper/main.pdf
 
 # MATLAB
 matlab/*.asv

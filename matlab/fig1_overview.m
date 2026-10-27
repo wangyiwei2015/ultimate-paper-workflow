@@ -8,6 +8,9 @@
 %    * Exact physical size in millimetres, zero outer margin,
 %      opaque WHITE background -> the SVG bounding box matches the
 %      panel box in Typst exactly.
+%      NOTE: MATLAB has no 'millimeters' unit -- write figW/figH in mm,
+%      but hand the figure/paper properties values in CENTIMETRES
+%      (see mm2cm below).  'millimeters' makes figure() error out.
 %    * Output: matlab/svg_out/<script_name>.svg
 %    * Font:   leave at MATLAB default (Helvetica/Arial); Typst re-labels.
 %    * Colors: use RGB triplets / hex so they survive re-labelling.
@@ -22,22 +25,29 @@ function fig1_overview()
     figW = 85;
     figH = 60;
 
+    % MATLAB 没有 'millimeters' 单位（只认 inches/centimeters/points/
+    % pixels/normalized/characters），所以几何量仍按 mm 书写，交给下面
+    % 的换算统一转成 cm 再赋给图窗属性。
+    mm2cm = @(v) v / 10;
+    figWcm = mm2cm(figW);
+    figHcm = mm2cm(figH);
+
     outDir = fullfile(fileparts(mfilename('fullpath')), 'svg_out');
     if ~exist(outDir, 'dir'); mkdir(outDir); end
     outFile = fullfile(outDir, 'fig1_overview.svg');
 
     % ---- 2. Figure window (off-screen, exact size) ----------
     hFig = figure('Visible', 'off', ...
-                  'Units', 'millimeters', ...
-                  'Position', [0 0 figW figH], ...
+                  'Units', 'centimeters', ...
+                  'Position', [0 0 figWcm figHcm], ...
                   'Color', 'w', ...
                   'MenuBar', 'none', ...
                   'ToolBar', 'none', ...
                   'NumberTitle', 'off', ...
                   'Name', 'fig1_overview', ...
-                  'PaperUnits', 'millimeters', ...
-                  'PaperSize', [figW figH], ...
-                  'PaperPosition', [0 0 figW figH], ...
+                  'PaperUnits', 'centimeters', ...
+                  'PaperSize', [figWcm figHcm], ...
+                  'PaperPosition', [0 0 figWcm figHcm], ...
                   'PaperPositionMode', 'manual', ...
                   'InvertHardcopy', 'off');
 
@@ -64,16 +74,13 @@ function fig1_overview()
     ylim(hAx, [0 1]);
 
     % ---- 5. Export true vector SVG on a white background ----
-    try
-        % R2023b+ : preferred, preserves exact paper size
-        exportgraphics(hFig, outFile, ...
-                       'ContentType', 'vector', ...
-                       'BackgroundColor', 'white');
-    catch
-        % Fallback for older releases
-        set(hFig, 'PaperPositionMode', 'manual');
-        print(hFig, outFile, '-dsvg', '-painters');
-    end
+    % 用 print -dsvg 而非 exportgraphics：两者都按整数 pt 落盘，
+    % 但 exportgraphics 会把内容外框（含边框线宽）一起算进去，
+    % 实测 85x60 mm 的板子会输出成 86.08x61.38 mm；print 严格
+    % 按 PaperSize/PaperPosition 出图（85.02x60.33 mm，仅差一个
+    % 取整 pt），所以尺寸契约以 print 为准。
+    set(hFig, 'PaperPositionMode', 'manual');
+    print(hFig, outFile, '-dsvg', '-painters');
 
     close(hFig);
     fprintf('  [fig1_overview] %g x %g mm  ->  %s\n', figW, figH, outFile);

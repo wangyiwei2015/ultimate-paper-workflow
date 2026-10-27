@@ -155,14 +155,25 @@ if [ "${1:-}" = "--check-sty" ]; then
         exit 0
     fi
     bad=0
+    missing=""
     for n in $names; do
         if ! kpsewhich "$n.sty" >/dev/null 2>&1; then
             printf '  [FATAL]   %s.sty not found - install it with tlmgr\n' "$n"
+            missing="${missing}${missing:+ }$n"
             bad=1
         fi
     done
     if [ "$bad" -ne 0 ]; then
-        printf '\n       Fix: tlmgr install <package>   (see agent.md section 4.3)\n'
+        # Print the exact command with the missing names filled in, so the
+        # user never has to translate ".sty not found" into package names
+        # by hand.  Two variants: system-wide (root) and usermode (no root,
+        # needed on macOS BasicTeX where /usr/local/texlive is root-owned).
+        printf '\n       Fix (pick the one that matches your TeX install):\n'
+        printf '         sudo tlmgr install %s\n' "$missing"
+        printf '         tlmgr init-usertree && tlmgr --usermode install %s\n' "$missing"
+        printf '\n       sys = system tree (needs root); usermode = ~/Library/texmf on macOS\n'
+        printf '       (.sty name != package name for a few: amssymb->amsfonts,\n'
+        printf '        graphicx->graphics, lm->lmodern; see agent.md section 4.3)\n'
     else
         printf '  [OK]      %s LaTeX packages from %s resolve\n' \
                "$(printf '%s\n' $names | wc -l | tr -d ' ')" "$preamble"

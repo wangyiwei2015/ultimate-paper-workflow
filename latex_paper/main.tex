@@ -1,12 +1,18 @@
 % =============================================================
-%  main.tex  --  <Paper Title>
-%  Build:      make paper        (latexmk -pdf)
+%  latex_paper/main.tex  --  <Paper Title>
+%  Build:      make paper        (latexmk -cd -pdf)
 %  Full chain: make all          (MATLAB -> Typst -> LaTeX)
+% -------------------------------------------------------------
+%  PATH CONVENTION: this file is compiled with the working
+%  directory set to latex_paper/ (latexmk -cd), so anything
+%  outside this folder is addressed as ../<dir>/ and every aux
+%  file + the PDF stay inside latex_paper/ -- the repo root
+%  stays clean.  Do not drop the ../ prefixes.
 % =============================================================
 \documentclass[11pt,a4paper,twocolumn]{article}
 
-\input{latex_templates/preamble.tex}
-\input{latex_templates/macros.tex}
+\input{../latex_templates/preamble.tex}
+\input{../latex_templates/macros.tex}
 
 % ---------------- metadata ----------------
 \title{Paper Title}
@@ -34,10 +40,10 @@
 
 Introduce the problem and the contribution.
 
-% Figure: figs_output/fig1_overview.pdf comes from figs_src/fig1_overview.typ,
+% Figure: ../figs_output/fig1_overview.pdf comes from figs_src/fig1_overview.typ,
 % which embeds matlab/svg_out/fig1_overview.svg.
 % Run "make figs" (or "make all") first, then uncomment:
-% \paperfigure{fig:overview}{Overview of the proposed device.}{figs_output/fig1_overview}
+% \paperfigure{fig:overview}{Overview of the proposed device.}{../figs_output/fig1_overview}
 
 \section{Methods}
 \label{sec:methods}
