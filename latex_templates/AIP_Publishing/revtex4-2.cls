@@ -1,40 +1,50 @@
 %%
-%% This is file `revtex4-1.cls',
+%% This is file `revtex4-2.cls',
 %% generated with the docstrip utility.
 %%
 %% The original source files were:
 %%
-%% revtex4-1.dtx  (with options: `kernel')
+%% revtex4-2.dtx  (with options: `kernel')
 %% ltxutil.dtx  (with options: `kernel')
 %% ltxfront.dtx  (with options: `kernel')
 %% ltxgrid.dtx  (with options: `kernel')
-%% revtex4-1.dtx  (with options: `options')
+%% revtex4-2.dtx  (with options: `options')
 %% ltxutil.dtx  (with options: `options')
 %% ltxfront.dtx  (with options: `options')
 %% ltxgrid.dtx  (with options: `options')
-%% revtex4-1.dtx  (with options: `package')
+%% revtex4-2.dtx  (with options: `package')
 %% 
 %% This file is part of the APS files in the REVTeX 4 distribution.
 %% For the version number, search on the string 
 %% Original version by David Carlisle
 %% Modified by Arthur Ogawa (mailto:arthur_ogawa at sbcglobal dot net)
 %% 
-%% Copyright (c) 2009 The American Physical Society.
-%% http://publish.aps.org/revtex4/
-%% mailto:revtex4@aps.org
+%% Version (4.2a, unreleased)
+%% Modified by Aptara on behalf of American Physical Society and American Institute of Physics
 %% 
-%% See the REVTeX 4 README file for restrictions and more information.
+%% Version (4.2b,4.2c)
+%% Modified by Mark Doyle, American Physical Society (mailto:revtex at aps.org)
+%% 
+%% Version (4.2d--4.2f)
+%% Modified by Phelype Oleinik for the American Physical Society (mailto:phelype.oleinik at latex-project.org)
+%% 
+%% Copyright (c) 2019--2022 American Physical Society.
+%% https://journals.aps.org/revtex/
+%% mailto:revtex@aps.org
+%% 
+%% See the REVTeX 4.2 README-REVTEX file for restrictions and more information.
 %% 
 \NeedsTeXFormat{LaTeX2e}[1996/12/01]%
-\ProvidesClass{revtex4-1}
- [2020/09/30 4.1s (http://publish.aps.org/revtex4/ for documentation)]% \fileversion
+\ProvidesClass{revtex4-2}
+ [2022/06/05 4.2f (https://journals.aps.org/revtex/ for documentation)]% \fileversion
 \let\class@name\@gtempa
 \GenericInfo{}{\space
- Copyright (c) 2009 The American Physical Society.^^J
+ Copyright (c) 2019 American Physical Society.^^J
  mailto:revtex@aps.org^^J
  Licensed under the LPPL:^^Jhttp://www.ctan.org/tex-archive/macros/latex/base/lppl.txt^^J
  Arthur Ogawa <arthur_ogawa at sbcglobal dot net>^^J
- Based on work by David Carlisle <david at dcarlisle.demon.co.uk>%
+ Based on work by David Carlisle <david at dcarlisle.demon.co.uk>^^J
+ Version (4.2d--4.2f): Modified by Mark Doyle and Phelype Oleinik^^J
  \@gobble
 }%
 \if@compatibility
@@ -47,7 +57,7 @@
 \fi
 \typeout{%
 ltxutil%
- [2020/09/30 4.1s utilities package (portions licensed from W. E. Baxter web at superscript.com)]% \fileversion
+ [2022/06/05 4.2f utilities package (portions licensed from W. E. Baxter web at superscript.com)]% \fileversion
 }%
 \def\class@err#1{\ClassError{\class@name}{#1}\@eha}%
 \def\class@warn#1{\ClassWarningNoLine{\class@name}{#1}}%
@@ -189,7 +199,7 @@ ltxutil%
  \@ifx{\undefined#1}{\true@sw}{\@ifx{\relax#1}{\true@sw}{\false@sw}}%
  {\def#1}{\def\j@nk}%
 }%
-\rvtx@ifformat@geq{2020-10-01}%
+\rvtx@ifformat@geq{2020/10/01}%
   {%
     \AddToHook{begindocument/before}{\document@inithook}%
   }{%
@@ -208,7 +218,7 @@ ltxutil%
 }%
 \let\class@documenthook\@empty
 \let\class@enddocumenthook\@empty
-\rvtx@ifformat@geq{2020-10-01}{%
+\rvtx@ifformat@geq{2020/10/01}{%
   % <definitions for newer LaTeX later>
 }{%
   % <definitions for older LaTeX>
@@ -254,7 +264,7 @@ ltxutil%
  }{}%
 }%
 }
-\rvtx@ifformat@geq{2020-10-01}{%
+\rvtx@ifformat@geq{2020/10/01}{%
   \AddToHook{enddocument}{\rvtx@enddocument@patch{}}%
 }{}
 \protected\long\def\rvtx@enddocument@patch#1#2\@checkend#3{%
@@ -344,25 +354,28 @@ ltxutil%
   \parfillskip\@flushglue
 }%
 \expandafter\DeclareRobustCommand\expandafter\@centercr\expandafter{\@centercr}%
+\def\rvtx@tmpa#1{%
 \def\eqnarray@LaTeX{%
    \stepcounter{equation}%
    \def\@currentlabel{\p@equation\theequation}%
+   #1% \def\@currentcounter{equation} on newer LaTeX
    \global\@eqnswtrue
    \m@th
    \global\@eqcnt\z@
    \tabskip\@centering
    \let\\\@eqncr
    $$\everycr{}\halign to\displaywidth\bgroup
-       \hskip\@centering$\displaystyle\tabskip\z@skip{##}$\@eqnsel
-      &\global\@eqcnt\@ne\hskip \tw@\arraycolsep \hfil${##}$\hfil
+       \hskip\@centering$\displaystyle\tabskip\z@skip{####}$\@eqnsel
+      &\global\@eqcnt\@ne\hskip \tw@\arraycolsep \hfil${####}$\hfil
       &\global\@eqcnt\tw@ \hskip \tw@\arraycolsep
-         $\displaystyle{##}$\hfil\tabskip\@centering
-      &\global\@eqcnt\thr@@ \hb@xt@\z@\bgroup\hss##\egroup
+         $\displaystyle{####}$\hfil\tabskip\@centering
+      &\global\@eqcnt\thr@@ \hb@xt@\z@\bgroup\hss####\egroup
          \tabskip\z@skip
       \cr
-}
+}%
 \long\def\eqnarray@fleqn@fixed{%
  \stepcounter{equation}\def\@currentlabel{\p@equation\theequation}%
+ #1% \def\@currentcounter{equation} on newer LaTeX
  \global\@eqnswtrue\m@th\global\@eqcnt\z@
  \tabskip\ltx@mathindent
  \let\\=\@eqncr
@@ -375,25 +388,33 @@ ltxutil%
  $$%
  \everycr{}%
  \halignt@\linewidth\bgroup
-  \hskip\@centering$\displaystyle\tabskip\z@skip{##}$\@eqnsel
+  \hskip\@centering$\displaystyle\tabskip\z@skip{####}$\@eqnsel
   &\global\@eqcnt\@ne
    \hskip\tw@\eqncolsep
-   \hfil${{}##{}}$\hfil
+   \hfil${{}####{}}$\hfil
   &\global\@eqcnt\tw@
    \hskip\tw@\eqncolsep
-   $\displaystyle{##}$\hfil\tabskip\@centering
-  &\global\@eqcnt\thr@@\hb@xt@\z@\bgroup\hss##\egroup
+   $\displaystyle{####}$\hfil\tabskip\@centering
+  &\global\@eqcnt\thr@@\hb@xt@\z@\bgroup\hss####\egroup
    \tabskip\z@skip
   \cr
 }%
-\@ifx{\eqnarray\eqnarray@LaTeX}{%
+}
+\rvtx@tmpa{}% older LaTeX
+\@ifx{\eqnarray\eqnarray@LaTeX}{\@firstofone}
+  {%
+    \rvtx@tmpa{\def\@currentcounter{equation}}% newer LaTeX
+    \@ifx{\eqnarray\eqnarray@LaTeX}{\@firstofone}
+      {\@gobble}
+  }
+{%
  \class@info{Repairing broken LaTeX eqnarray}%
  \let\eqnarray\eqnarray@fleqn@fixed
  \newlength\eqncolsep
  \setlength\eqncolsep\z@
  \let\eqnarray@LaTeX\relax
  \let\eqnarray@fleqn@fixed\relax
-}{}%
+}%
 \def\ltx@mathindent{\@centering}%
 \def\set@eqnarray@skips{}%
 \def\prep@math{%
@@ -1964,7 +1985,7 @@ ltxutil%
 \providecommand \URL@prefix [0]{URL }%
 \providecommand\doi[0]{\begingroup\@sanitize@url\@doi}%
 \def\@doi#1{\endgroup\@@startlink{\doibase#1}doi:\discretionary {}{}{}#1\@@endlink }%
-\providecommand \doibase [0]{http://dx.doi.org/}%
+\providecommand \doibase [0]{https://doi.org/}%
 \providecommand \@sanitize@url[0]{\chardef\cat@space\the\catcode`\ \@sanitize\catcode`\ \cat@space}%
 \def\@@startlink#1{}%
 \def\@@endlink{}%
@@ -2082,14 +2103,14 @@ ltxutil%
  \let\typeout\typeout@ltx
  \true@sw
 }{%
- \rvtx@ifformat@geq{2020-10-01}%
+ \rvtx@ifformat@geq{2020/10/01}%
    {\true@sw}{\false@sw}%
 }%
  {\class@info{Making \string\typeout\space \string\long}}%
  {}%
 \typeout{%
 ltxfront%
- [2020/09/30 4.1s frontmatter package (AO,DPC)]% \fileversion
+ [2022/06/05 4.2f frontmatter package (AO,DPC,MD)]% \fileversion
 }%
 \appdef\class@documenthook{\frontmatter@init}%
 \let\frontmatter@init\@empty
@@ -3125,7 +3146,7 @@ ltxfront%
 }%
 \typeout{%
 ltxgrid%
- [2020/09/30 4.1s page grid package (portions licensed from W. E. Baxter web at superscript.com)]% \fileversion
+ [2022/06/05 4.2f page grid package (portions licensed from W. E. Baxter web at superscript.com)]% \fileversion
 }%
 \newcounter{linecount}
 \def\loop@line#1#2{%
@@ -4945,7 +4966,7 @@ ltxgrid%
 \def\recover@column@null#1#2#3#4{%
  \unvcopy#1%
 }%
-\rvtx@ifformat@geq{2020-10-01}%
+\rvtx@ifformat@geq{2020/10/01}%
   {%
     \AddToHook{begindocument}{%
       \open@column@one\@ne
@@ -5873,8 +5894,8 @@ ltxgrid%
  \ExecuteOptions{12pt}%
 }%
 \DeclareOption{reprint}{%
- \@booleanfalse\preprintsty@sw
- \@booleantrue\twocolumn@sw
+\@booleanfalse\preprintsty@sw
+\@booleantrue\twocolumn@sw
  \ExecuteOptions{10pt}%
 }%
 \DeclareOption{manuscript}{%
@@ -5965,7 +5986,7 @@ ltxgrid%
 \@booleanfalse\citeautoscript@sw
 \DeclareOption{longbibliography}{\@booleantrue\longbibliography@sw}%
 \DeclareOption{nolongbibliography}{\@booleanfalse\longbibliography@sw}%
-\@booleanfalse\longbibliography@sw
+\@booleantrue\longbibliography@sw
 \DeclareOption{eprint}{\@booleantrue\eprint@enable@sw}%
 \DeclareOption{noeprint}{\@booleanfalse\eprint@enable@sw}%
 \@booleantrue\eprint@enable@sw
@@ -5976,7 +5997,7 @@ ltxgrid%
 \DeclareOption{twoside}{\@booleantrue \twoside@sw\@mparswitchfalse}%
 \DeclareOption{oneside}{\@booleanfalse\twoside@sw\@mparswitchtrue}%
 \DeclareOption{onecolumn}{\@booleanfalse\twocolumn@sw}%
-\DeclareOption{twocolumn}{\@booleantrue \twocolumn@sw}%
+\DeclareOption{twocolumn}{\@booleantrue\twocolumn@sw}%
 \@booleanfalse\twocolumn@sw
 \def\select@column@grid{%
  \twocolumn@sw{%
@@ -6287,28 +6308,28 @@ ltxgrid%
  \@booleanfalse\runinaddress@sw
 }%
 %%%  @LaTeX-file{
-%%%     filename        = "revtex4-1.dtx",
-%%%     version         = "4.1s",
-%%%     date            = "2020/09/30",
-%%%     author          = "Arthur Ogawa (mailto:arthur_ogawa at sbcglobal.net),
+%%%     filename        = "revtex4-2.dtx",
+%%%     version         = "4.2f",
+%%%     date            = "2022/06/05",
+%%%     author          = "Mark Doyle (mailto: revtex at aps.org), Arthur Ogawa (mailto:arthur_ogawa at sbcglobal.net),
 %%%                        commissioned by the American Physical Society.
 %%%                        ",
-%%%     copyright       = "Copyright (C) 1999, 2009 Arthur Ogawa,
+%%%     copyright       = "Copyright (C) 1999, 2009 Arthur Ogawa, Version 4.2 Copyright (C) 2019 American Physical Society
 %%%                        distributed under the terms of the
-%%%                        LaTeX Project Public License, see
+%%%                        LaTeX Project Public License 1.3c, see
 %%%                        ftp://ctan.tug.org/macros/latex/base/lppl.txt
 %%%                        ",
-%%%     address         = "Arthur Ogawa,
+%%%     address         = "Mark Doyle,
 %%%                        USA",
 %%%     telephone       = "",
 %%%     FAX             = "",
-%%%     email           = "mailto colon arthur_ogawa at sbcglobal.net",
+%%%     email           = "mailto colon revtex at aps.org",
 %%%     codetable       = "ISO/ASCII",
-%%%     keywords        = "latex, page grid, main vertical list",
+%%%     keywords        = "",
 %%%     supported       = "yes",
-%%%     abstract        = "package to change page grid, MVL",
+%%%     abstract        = "",
 %%%  }
-\def\substyle@post{4-1}%
+\def\substyle@post{4-2}%
 \def\substyle@ext{rtx}%
 \DeclareOption*{\OptionNotUsed}%
 \def\@process@society#1{%
@@ -7217,12 +7238,12 @@ ltxgrid%
 \def\@bibdataout@rev{%
  \immediate\write\@bibdataout{%
   @CONTROL{%
-   REVTEX41Control%
-   \eprint@enable@sw{}{,eprint=""}%
+   REVTEX42Control%
+   \eprint@enable@sw{}{,eprint="1"}%
   }%
  }%
  \if@filesw
-  \immediate\write\@auxout{\string\citation{REVTEX41Control}}%
+  \immediate\write\@auxout{\string\citation{REVTEX42Control}}%
  \fi
 }%
 \def\printendnotes{%
@@ -7581,9 +7602,41 @@ ltxgrid%
  \global\let\eqnum\@gobble
 }%
 \appdef\rtx@require@packages{%
- \RequirePackage{revsymb4-1}%
+ \RequirePackage{revsymb4-2}%
 }%
 \appdef\class@documenthook{\revsymb@inithook}%
+%%
+\def\@startflt#1{%
+  \begingroup
+    %\toc@pre
+    \makeatletter
+    \@input{\jobname.#1}%
+    \if@filesw
+      \expandafter\newwrite\csname tf@#1\endcsname
+      \immediate\openout \csname tf@#1\endcsname \jobname.#1\relax
+    \fi
+    \@nobreakfalse
+    %\toc@post
+  \endgroup
+}%
+\def\att@TOC{toc}%
+\def\print@toc#1{%
+ \begingroup
+  \expandafter\section
+  \expandafter*%
+  \expandafter{%
+              \csname#1name\endcsname
+              }%
+  \let\appendix\appendix@toc
+  \def\tempa{#1}%
+  \ifx\tempa\att@TOC%%
+  \@starttoc{#1}%
+  \else%%
+  \@startflt{#1}%%
+  \fi%%
+ \endgroup
+}%
+%%
 \def\@LN@LLerror@org{%
  \PackageError{lineno}{%
   \string\linelabel\space without \string\linenumbers
@@ -7621,7 +7674,8 @@ ltxgrid%
 \expandafter\@process@pointsize\expandafter{\@pointsize@default}%
 \@options
 \rtx@require@packages
+\appdef\setup@hook{\normalsize}%
 \setup@hook
 \endinput
 %%
-%% End of file `revtex4-1.cls'.
+%% End of file `revtex4-2.cls'.

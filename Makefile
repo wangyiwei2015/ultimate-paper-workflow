@@ -31,6 +31,29 @@ MAIN_TEX        := $(PAPER_DIR)/main.tex
 MAIN_PDF        := $(PAPER_DIR)/main.pdf
 PREAMBLE        := $(TMPL_DIR)/preamble.tex
 
+# Journal-template demos in latex_paper/ (one per class in latex_templates/):
+#   example_ieee_jmems.tex  IEEEtran        biblatex/biber
+#   example_ieee_edl.tex    ieeecolor       biblatex/biber
+#   example_nature.tex      sn-jnl          biblatex/biber
+#   example_apl.tex         revtex4-2       BibTeX (REVTeX hard-codes natbib)
+# They are buildable but not part of "make all": they exist to show how a
+# class is wired to ../latex_templates, ../figs_output and ../latex_refs.
+EXAMPLES  := $(wildcard $(PAPER_DIR)/example_*.tex)
+
+# Which .tex "make paper" compiles.  Override on the command line:
+#   make paper                         -> latex_paper/main.tex   (default)
+#   make paper SRC=example_apl         -> latex_paper/example_apl.tex
+#   make paper SRC=example_apl.tex     -> same (".tex" is optional)
+#   make paper SRC=other/draft.tex     -> used verbatim (any path)
+# Resolution happens in the recipe (POSIX sh), not with GNU-make-only
+# functions, so BSD make on macOS behaves identically.
+#
+# DON'T rename this to TEX: "TEX" is a GNU make BUILT-IN variable whose
+# default value is "tex" (the TeX binary), so it is always already
+# defined and "TEX ?= ..." never fires -- every plain "make paper" would
+# then look for "tex.tex".  Same trap for LATEX.  "SRC" is not built in.
+SRC ?= $(MAIN_TEX)
+
 # Files in figs_src whose name starts with "_" are shared includes
 # (e.g. _lib.typ) and are never compiled into a standalone PDF.
 TYP_ALL   := $(wildcard $(TYP_SRC_DIR)/*.typ)
@@ -72,7 +95,7 @@ RED    := \033[31m
 BOLD   := \033[1m
 RESET  := \033[0m
 
-.PHONY: help check-env matlab figs sync tex-deps paper all clean distclean dirs
+.PHONY: help check-env matlab figs sync tex-deps paper examples all clean distclean dirs
 
 # =============================================================
 #  0. Help / environment check
@@ -85,10 +108,15 @@ help: check-env
 	@printf "  $(GREEN)make figs$(RESET)       - compile $(TYP_SRC_DIR)/*.typ -> $(FIG_OUT_DIR)/*.pdf\n"
 	@printf "  $(GREEN)make sync$(RESET)       - full figure chain (matlab + figs)\n"
 	@printf "  $(GREEN)make tex-deps$(RESET)   - verify every preamble \\\\usepackage resolves (auto-run by 'paper')\n"
-	@printf "  $(GREEN)make paper$(RESET)      - latexmk -> $(MAIN_PDF)\n"
+	@printf "  $(GREEN)make paper$(RESET)      - latexmk $(MAIN_TEX) -> $(MAIN_PDF)\n"
+	@printf "                         add $(BOLD)SRC=x$(RESET) to compile another source. 'x' resolves as:\n"
+	@printf "                         x.tex (cwd) -> $(PAPER_DIR)/x.tex -> path/to/x.tex\n"
+	@printf "                         e.g. $(BOLD)make paper SRC=example_apl$(RESET)\n"
+	@printf "  $(GREEN)make examples$(RESET)   - build every $(PAPER_DIR)/example_*.tex (journal-template demos)\n"
 	@printf "  $(GREEN)make all$(RESET)        - matlab -> figs -> paper\n"
-	@printf "  $(GREEN)make clean$(RESET)      - remove LaTeX aux files (keeps PDFs)\n"
-	@printf "  $(GREEN)make distclean$(RESET)  - remove aux files + all generated figures\n"
+	@printf "  $(GREEN)make clean$(RESET)      - delete every LaTeX aux file (.aux/.log/.bbl/.bcf/...),\n"
+	@printf "                         keep the .tex sources and the PDFs\n"
+	@printf "  $(GREEN)make distclean$(RESET)  - clean + delete all generated figures and PDFs\n"
 	@printf "\n"
 	@printf "$(CYAN)Windows note:$(RESET) run every target from $(BOLD)Git Bash$(RESET) -- the recipes\n"
 	@printf "              are POSIX sh, and make itself needs a shell.\n"
@@ -176,15 +204,41 @@ tex-deps:
 		exit 1; }
 
 # -cd (NOT "cd $(PAPER_DIR) &&"): latexmk chdirs into the directory of
-# main.tex itself, so latex_paper/main.tex reaches the rest of the repo
+# the .tex file itself, so latex_paper/*.tex reaches the rest of the repo
 # as ../latex_templates/... and ../figs_output/... while every aux file
-# and the PDF land in latex_paper/ instead of cluttering the repo root.
+# and the PDF land next to the source instead of cluttering the repo root.
 # Doing it inside latexmk also keeps the FIND_TOOL invariant: that path
 # is RELATIVE and must be resolved before any chdir happens.
+#
+# SRC= resolution lives in the recipe (POSIX sh) on purpose: the whole
+# block runs in ONE shell, so "$$t" survives from the normalisation to
+# the latexmk call, and FIND_TOOL is expanded before any chdir happens.
 paper: tex-deps
-	@printf "$(CYAN)--> latexmk: $(MAIN_TEX) -> $(MAIN_PDF)$(RESET)\n"
-	@$(FIND_TOOL) $(LATEXMK) -cd -pdf -interaction=nonstopmode -synctex=1 -file-line-error $(MAIN_TEX)
-	@printf "$(GREEN)--> Paper built: $(MAIN_PDF)$(RESET)\n"
+	@t="$(SRC)"; \
+	case "$$t" in *.tex) ;; *) t="$$t.tex" ;; esac; \
+	if [ ! -f "$$t" ] && [ -f "$(PAPER_DIR)/$$t" ]; then t="$(PAPER_DIR)/$$t"; fi; \
+	if [ ! -f "$$t" ]; then \
+		printf "\n$(RED)--> make paper aborted: no such file '$$t'.$(RESET)\n"; \
+		printf "$(RED)    Sources available in $(PAPER_DIR)/:$(RESET)\n"; \
+		for x in $(PAPER_DIR)/*.tex; do printf "      %s\n" "$$x"; done; \
+		exit 1; \
+	fi; \
+	printf "$(CYAN)--> latexmk: $$t -> $${t%.tex}.pdf$(RESET)\n"; \
+	$(FIND_TOOL) $(LATEXMK) -cd -pdf -interaction=nonstopmode -synctex=1 -file-line-error "$$t" \
+		|| { printf "\n$(RED)--> Build failed. Re-run with 'make clean' first if the log\n"; \
+		     printf "$(RED)    says \"gave an error in previous invocation\".$(RESET)\n"; exit 1; }; \
+	printf "$(GREEN)--> PDF: $${t%.tex}.pdf$(RESET)\n"
+
+# Journal-template demos.  Same -cd trick, so every example resolves the
+# rest of the repo as ../latex_templates, ../figs_output, ../latex_refs.
+# One shell, one loop: FIND_TOOL is a relative path, so the cwd must not
+# change between resolving the tool and running it.
+examples: tex-deps
+	@for f in $(EXAMPLES); do \
+		printf "$(CYAN)--> latexmk: $$f$(RESET)\n"; \
+		$(FIND_TOOL) $(LATEXMK) -cd -pdf -interaction=nonstopmode -file-line-error $$f || exit 1; \
+	done
+	@printf "$(GREEN)--> Examples built: $(patsubst %.tex,%.pdf,$(EXAMPLES))$(RESET)\n"
 
 # =============================================================
 #  5. Everything
@@ -197,18 +251,24 @@ all: matlab figs paper
 # =============================================================
 #  6. Cleaning
 # =============================================================
+# Why not "latexmk -c": by design -c KEEPS the .bbl (for journals that
+# want it shipped with the source).  Here .bbl is a rebuildable artefact
+# like any other, and a leftover .bbl is the classic reason a changed
+# .bib does not show up.  So we delete by extension instead -- the list
+# below is the full set latexmk/pdflatex/biber/BibTeX/REVTeX can emit.
+AUX_EXTS = aux log bbl blg bcf out toc lof lot fls fdb_latexmk nav snm vrb
+AUX_EXTRA = run.xml synctex.gz
+
 clean:
-	@printf "$(YELLOW)--> Removing LaTeX aux files...$(RESET)\n"
-	@$(FIND_TOOL) $(LATEXMK) -cd -c $(MAIN_TEX) 2>/dev/null || true
-	@rm -f $(PAPER_DIR)/*.synctex.gz $(PAPER_DIR)/*.bcf $(PAPER_DIR)/*.run.xml \
-	       $(PAPER_DIR)/*.fls $(PAPER_DIR)/*.fdb_latexmk
-	@rm -f *.aux *.log *.bbl *.bcf *.blg *.out *.fls *.fdb_latexmk *.run.xml \
-	       *.synctex.gz *.toc *.lof *.lot
-	@printf "$(GREEN)--> Clean (PDFs kept).$(RESET)\n"
+	@printf "$(YELLOW)--> Removing LaTeX aux files (keeping .tex and .pdf)...$(RESET)\n"
+	@for e in $(AUX_EXTS) $(AUX_EXTRA); do rm -f $(PAPER_DIR)/*."$$e"; done
+	@for e in $(AUX_EXTS) $(AUX_EXTRA); do rm -f *."$$e"; done
+	@rm -f $(PAPER_DIR)/*Notes.bib
+	@printf "$(GREEN)--> Clean. $(PAPER_DIR)/ now holds only sources + PDFs.$(RESET)\n"
 
 distclean: clean
-	@printf "$(YELLOW)--> Removing generated figures...$(RESET)\n"
+	@printf "$(YELLOW)--> Removing generated figures and PDFs...$(RESET)\n"
 	@rm -f $(FIG_OUT_DIR)/*.pdf
 	@rm -f $(MATLAB_SVG_DIR)/*.svg
-	@rm -f $(MAIN_PDF)
+	@rm -f $(MAIN_PDF) $(patsubst %.tex,%.pdf,$(EXAMPLES))
 	@printf "$(GREEN)--> Dist clean done.$(RESET)\n"

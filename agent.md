@@ -58,6 +58,8 @@ MATLAB 产出的 SVG 用文本编辑器打开应当**不含任何文本节点**�
 | `Makefile` | 唯一构建入口 | ✅ |
 | `latex_paper/main.tex` | 稿件主文件（正文只放这里） | ✅ |
 | `latex_paper/main.pdf` | 编译产物，与正文同目录（`make clean` 保留） | ❌ 见 `.gitignore` |
+| `latex_paper/example_*.tex` | 四个期刊模板的接入示例（IEEEtran / ieeecolor / sn-jnl / revtex4-2），`make examples` 构建 | ✅ |
+| `latex_templates/IEEE-T/`<br>`latex_templates/IEEE-LED/`<br>`latex_templates/Nature/`<br>`latex_templates/AIP_Publishing/` | 四套期刊类文件；**只留 `.cls/.sty/.rtx/.bst`**，模板自带的示例图片与示例 `.bib` 已删除（示例 tex 统一引用 `../figs_output/fig1_overview` 与 `../latex_refs/refs.bib`） | ✅ |
 | `agent.md` | 本文件 | ✅ |
 | `setup/windows.ps1` | Windows 环境安装（PowerShell，自提权，两阶段） | ✅ |
 | `setup/macos.sh` | macOS 环境安装（brew） | ✅ |
@@ -234,6 +236,63 @@ tlmgr --usermode install siunitx biblatex cleveref enumitem multirow logreq
 `N LaTeX packages ... resolve`。之后**所有 tlmgr 操作都要带 `--usermode`**
 （包括 `tlmgr --usermode update --all`），否则会去动只读的系统树而报权限错。
 
+### 4.4 文献后端：biblatex/Biber 为主，BibTeX 是唯一例外
+
+四份 `latex_paper/example_*.tex` 里三份用 **biblatex + Biber**，只有
+`example_apl.tex` 用 **BibTeX**：
+
+| 示例 | 模板类 | 文献方案 | 原因 |
+|---|---|---|---|
+| `example_ieee_jmems.tex` | IEEEtran | biblatex (biber) | 类本身不加载 natbib |
+| `example_ieee_edl.tex` | ieeecolor | biblatex (biber) | 同上 |
+| `example_nature.tex` | sn-jnl | biblatex (biber) | 需伪 `ver@natbib.sty` 抑制类里硬编码的 natbib 加载 |
+| `example_apl.tex` | revtex4-2 | **BibTeX** | REVTeX 硬编码 `\RequirePackage[sort&compress]{natbib}` 且自带 `\@bibitem` 体系，biblatex 会撞 `\bibhang / \citename / \textcite`；官方支持的就是 `aipnum4-2.bst` |
+
+**`latex_refs/refs.bib` 因此必须同时被 Biber 和 BibTeX 读通。** 有一条硬规则：
+
+> **BibTeX 没有注释语法。** 以 `%` 开头的行只被跳过「直到下一个 `@`」为止。
+> 所以注释行里出现 `@` + 条目类型名，BibTeX 会真的当成一个条目去解析，
+> 报 `I was expecting a '{' or a '('` 或 `You're missing a field name`。
+> 而 `@comment{...}` 也不是注释块——BibTeX 只跳到下一个 `@`，里面的条目照样入库。
+
+因此：
+
+- **不要**在 `refs.bib` 的 `%` 注释里写 `@`（尤其别写「`% @article{...}` 这样注释掉」）。
+- **不要**在 `refs.bib` 里存注释掉的条目模板。模板放本节末尾，复制出去用。
+- 字段只用 BibTeX 与 Biber 的交集：不要 `@string` / `@preamble` 宏，不要裸数字字段。
+- 写完先跑 `bibtex` 看 `.blg` 是否 0 error/warning，再跑完整 `make paper`。
+
+条目模板（复制到 `latex_refs/refs.bib` 里改）：
+
+```bibtex
+@article{key2024,
+  author  = {Last, F. and Last, F.},
+  title   = {Sentence case title with {PMUT} protected},
+  journal = {Journal Name},
+  volume  = {1},
+  pages   = {1--10},
+  year    = {2024},
+  doi     = {10.xxxx/xxxxx},
+}
+
+@inproceedings{key2023,
+  author    = {Last, F. and Last, F.},
+  title     = {Design of a {PIMNT} transducer for pulse-echo imaging},
+  booktitle = {IEEE International Ultrasonics Symposium (IUS)},
+  pages     = {1--4},
+  year      = {2023},
+  doi       = {10.1109/IUS.2023.1234567},
+}
+
+@book{key2020,
+  author    = {Last, F.},
+  title     = {Fundamentals of piezoelectric micromachined ultrasonic transducers},
+  publisher = {Springer},
+  address   = {Berlin},
+  year      = {2020},
+}
+```
+
 ---
 
 ## 5. 命令速查
@@ -247,9 +306,16 @@ tlmgr --usermode install siunitx biblatex cleveref enumitem multirow logreq
 | `make sync` | `make matlab && make figs` |
 | `make tex-deps` | 只校验 preamble 里每个 `\usepackage` 是否都装全；缺包会打印可直接粘贴的 `tlmgr install ...` 并 exit 1（`make paper` 会自动先跑它） |
 | `make paper` | `latexmk -cd -pdf` → `latex_paper/main.pdf`（前置 `tex-deps` 门禁，缺包直接中止，不启动 latexmk） |
+| `make paper SRC=<x>` | 编**别的** `.tex`。`x` 解析顺序：`x.tex`（当前目录）→ `latex_paper/x.tex` → `路径/x.tex` 原样用；`.tex` 可省。典型：`make paper SRC=example_apl`。文件不存在会列出现有源并 exit 1 |
+| `make examples` | 依次编译 `latex_paper/example_*.tex` → 同目录 `example_*.pdf`（四套期刊模板的接入示例，不属于 `make all`） |
 | `make all` | 全链路：matlab → figs → paper |
-| `make clean` | 清 LaTeX 辅助文件（保留 `latex_paper/main.pdf`） |
-| `make distclean` | 清辅助文件 + 所有生成的图与 `latex_paper/main.pdf` |
+| `make clean` | 按扩展名删掉**所有** LaTeX 辅助文件（`.aux/.log/.bbl/.blg/.bcf/.out/.fls/.fdb_latexmk/.run.xml/.synctex.gz/…` + REVTeX 的 `*Notes.bib`），`latex_paper/` 只剩源码与 PDF |
+| `make distclean` | `clean` + 所有生成的图 + `latex_paper/main.pdf` + `example_*.pdf` |
+
+> **`make paper` 的变量叫 `SRC` 而不是 `TEX`。** `TEX` 是 GNU make 的
+> **内建变量**（默认值 `tex`，即 TeX 二进制名），它永远"已定义"，
+> 所以 `TEX ?= ...` 永远不会生效——不带参数时会去找 `tex.tex`。
+> `LATEX` 同理。`SRC` 没有内建冲突。
 
 ---
 

@@ -1,45 +1,56 @@
 % =============================================================
-%  latex_refs/refs.bib  --  bibliography database (empty on purpose)
-%  Loaded by:  latex_templates/preamble.tex  (\addbibresource)
-%  Build:      make paper    (biber runs automatically via latexmk)
+%  latex_refs/refs.bib  --  bibliography database
+%  Loaded by:  latex_templates/preamble.tex  (addbibresource, Biber)
+%              latex_paper/example_apl.tex   (bibliography,  BibTeX)
+%  Build:      make paper  --  Biber / BibTeX run automatically.
+%
+%  Ships with ONE live entry (wang2024pmut) so that the four
+%  example_*.tex documents in latex_paper/ have something to print.
+%  Replace it with the real references; the keys are the only thing
+%  the .tex files reference.
 %
 %  CONVENTIONS (enforced for every entry):
 %    * Titles in Sentence case -- only the first word, proper nouns and
-%      acronyms are capitalised.  Protect them with an extra { } so
-%      BibTeX/Biber will not lowercase them:  title = {A {PMUT} array ...}
-%    * Use DOI when available; omit the URL if a DOI is present.
-%    * Journal names: full name or the journal's own standard abbreviation,
-%      but be consistent across the whole file.
+%      acronyms are capitalised.  Protect them with an extra { } so the
+%      backend will not lowercase them:  title = {A {PMUT} array ...}
+%    * Use DOI when available; omit the URL when a DOI is present.
+%    * Journal names: full name or the journal's own standard
+%      abbreviation, but be consistent across the whole file.
 %    * Keys:  <firstauthorlastname><year><firstkeyword>
 %             e.g.  wang2023pmut,  chen2024scaln
+%
+%  !!! BIBTEX PARSING RULE -- READ BEFORE EDITING !!!
+%  This file is read by BOTH Biber (three examples) and BibTeX
+%  (example_apl, because REVTeX hard-codes natbib).  BibTeX has NO
+%  comment syntax: a line starting with '%' is skipped only up to the
+%  next entry-start character, so an entry-start character inside a
+%  '%' comment still opens an entry and blows up with "I was expecting
+%  a brace" or "missing a field name".  The comment entry type is no
+%  help either -- BibTeX only skips to the next entry-start, so entries
+%  nested inside it still land in the database.
+%
+%  Hence, in this file:
+%    1. Never let an entry-start character appear in a comment line.
+%    2. Never keep commented-out entries or entry templates here.  The
+%       templates live in agent.md section 4.4 -- copy them from there.
+%    3. Keep to the intersection of BibTeX and Biber: no string or
+%       preamble macros, no bare-number fields.
 % =============================================================
 
 % ---- article -------------------------------------------------
-% @article{key2024,
-%   author  = {Wang, L. and Chen, X. and Smith, J.},
-%   title   = {A {PMUT} array with 30\% {Sc}-doped {AlN} for airborne ultrasound},
-%   journal = {Sensors and Actuators A: Physical},
-%   volume  = {360},
-%   pages   = {114520},
-%   year    = {2024},
-%   doi     = {10.1016/j.sna.2023.114520},
-% }
+% Live demo entry: the example_*.tex documents in latex_paper/ cite
+% this key so that the printed bibliography has something to show.
+@article{wang2024pmut,
+  author  = {Wang, L. and Chen, X. and Smith, J.},
+  title   = {A {PMUT} array with 30\% {Sc}-doped {AlN} for airborne ultrasound},
+  journal = {Sensors and Actuators A: Physical},
+  volume  = {360},
+  pages   = {114520},
+  year    = {2024},
+  doi     = {10.1016/j.sna.2023.114520},
+}
 
-% ---- inproceedings -------------------------------------------
-% @inproceedings{key2023,
-%   author    = {Wang, L. and Chen, X.},
-%   title     = {Design of a {PIMNT} transducer for pulse-echo imaging},
-%   booktitle = {IEEE International Ultrasonics Symposium (IUS)},
-%   pages     = {1--4},
-%   year      = {2023},
-%   doi       = {10.1109/IUS.2023.1234567},
-% }
-
-% ---- book / thesis -------------------------------------------
-% @book{key2020,
-%   author    = {Author, A.},
-%   title     = {Fundamentals of piezoelectric micromachined ultrasonic transducers},
-%   publisher = {Springer},
-%   address   = {Berlin},
-%   year      = {2020},
-% }
+% -----------------------------------------------------------------
+%  Add further entries below, using the templates in agent.md 4.4
+%  (article / inproceedings / book, sentence-case titles, DOI field).
+% -----------------------------------------------------------------

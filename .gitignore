@@ -20,9 +20,14 @@
 *.snm
 *.vrb
 latexmkrc-*
+# REVTeX writes the footnote pseudo-bibliography here on every BibTeX pass
+*Notes.bib
 
 # Final paper (rebuild with: make paper)
 /latex_paper/main.pdf
+
+# Journal-template demos (rebuild with: make examples)
+/latex_paper/example_*.pdf
 
 # MATLAB
 matlab/*.asv
