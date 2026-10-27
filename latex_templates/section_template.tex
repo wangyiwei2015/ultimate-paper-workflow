@@ -1,0 +1,40 @@
+% =============================================================
+%  latex_templates/section_template.tex
+%  Copy-paste skeleton for a new section. Save the copy under a new
+%  name and \input{...} it from main.tex.
+% =============================================================
+
+\section{Section Title}
+\label{sec:template}
+
+One or two sentences stating what this section establishes.
+
+\subsection{Methods}
+
+Body text. Cite with \textcite{key2024} or \cite{key2024}; link to
+\figref{fig:overview} and \eqnref{eq:template}.
+
+\begin{equation}
+  \label{eq:template}
+  f_0 = \frac{2.4048}{2\pi a^2}\sqrt{\frac{D}{\rho h}}
+\end{equation}
+
+% --- figure produced by the MATLAB -> Typst pipeline ----------
+% 1. matlab/figX_<name>.m      -> matlab/svg_out/figX_<name>.svg
+% 2. figs_src/figX_<name>.typ  -> figs_output/figX_<name>.pdf
+% 3. include here (NEVER include the raw SVG directly)
+% \paperfigure{fig:template}{Caption text.}{figs_output/figX_<name>}
+
+% --- table ----------------------------------------------------
+% \begin{table}[tb]
+%   \centering
+%   \caption{Caption text.}
+%   \label{tab:template}
+%   \begin{tabular}{@{}llr@{}}
+%     \toprule
+%     Parameter & Symbol & Value \\
+%     \midrule
+%     Radius    & $a$    & \SI{100}{\um} \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}

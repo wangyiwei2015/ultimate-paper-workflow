@@ -1,0 +1,60 @@
+% =============================================================
+%  main.tex  --  <Paper Title>
+%  Build:      make paper        (latexmk -pdf)
+%  Full chain: make all          (MATLAB -> Typst -> LaTeX)
+% =============================================================
+\documentclass[11pt,a4paper,twocolumn]{article}
+
+\input{latex_templates/preamble.tex}
+\input{latex_templates/macros.tex}
+
+% ---------------- metadata ----------------
+\title{Paper Title}
+\author{Author One, Author Two}
+\date{\today}
+
+\begin{document}
+
+\makeatletter
+\twocolumn[
+  \begin{@twocolumnfalse}
+    \maketitle
+    \begin{abstract}
+      Abstract text.
+    \end{abstract}
+    \medskip
+    \noindent\textbf{Keywords:} keyword one; keyword two
+    \bigskip
+  \end{@twocolumnfalse}
+]
+\makeatother
+
+\section{Introduction}
+\label{sec:intro}
+
+Introduce the problem and the contribution.
+
+% Figure: figs_output/fig1_overview.pdf comes from figs_src/fig1_overview.typ,
+% which embeds matlab/svg_out/fig1_overview.svg.
+% Run "make figs" (or "make all") first, then uncomment:
+% \paperfigure{fig:overview}{Overview of the proposed device.}{figs_output/fig1_overview}
+
+\section{Methods}
+\label{sec:methods}
+
+Describe the model, the fabrication and the measurement setup.
+
+\section{Results and Discussion}
+\label{sec:results}
+
+Report the findings.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Summarise.
+
+% ---------------- bibliography ----------------
+\printbibliography
+
+\end{document}

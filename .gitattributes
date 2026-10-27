@@ -1,0 +1,11 @@
+# =============================================================
+#  Line endings: LF everywhere in this repo.
+#
+#  If a .bat / .cmd is ever added, it MUST be CRLF for cmd.exe --
+#  add its eol=crlf line below in that case (there are none today).
+# =============================================================
+
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+*      text eol=lf

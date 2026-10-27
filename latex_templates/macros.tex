@@ -1,0 +1,32 @@
+% =============================================================
+%  latex_templates/macros.tex  --  project-wide custom macros
+% =============================================================
+
+% ---- cross references ---------------------------------------
+\newcommand{\figref}[1]{Fig.~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+\newcommand{\eqnref}[1]{Eq.~(\ref{#1})}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+
+% ---- frequently used symbols ---------------------------------
+\newcommand{\um}{\si{\micro\metre}}          % micrometre
+\newcommand{\MHz}{\si{\mega\hertz}}
+\newcommand{\kPa}{\si{\kilo\pascal}}
+
+% ---- journal-safe emphasis -----------------------------------
+% Prefer \emph{} over \textbf{} in body text.
+\newcommand{\etal}{\emph{et al.}}
+\newcommand{\eg}{\emph{e.g.}}
+\newcommand{\ie}{\emph{i.e.}}
+
+% ---- figure helper -------------------------------------------
+% Usage:
+%   \paperfigure{fig:overview}{Overview of the proposed device.}{figs_output/fig1_overview}
+\newcommand{\paperfigure}[3]{%
+  \begin{figure}[tb]
+    \centering
+    \includegraphics[width=\linewidth]{#3}
+    \caption{#2}
+    \label{#1}
+  \end{figure}%
+}

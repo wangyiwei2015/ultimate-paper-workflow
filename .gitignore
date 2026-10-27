@@ -1,0 +1,39 @@
+# =============================================================
+#  Generated artefacts -- never commit
+# =============================================================
+
+# LaTeX / latexmk / biber
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.run.xml
+*.nav
+*.snm
+*.vrb
+latexmkrc-*
+
+# Final paper (rebuild with: make paper)
+/main.pdf
+
+# MATLAB
+matlab/*.asv
+matlab/*.m~
+matlab/**/slprj/
+
+# Editors / OS
+.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# code.cmd (VS Code CLI) dumps its stderr here when run non-interactively,
+# e.g. "code --install-extension" from setup/windows.ps1
+/debug.log

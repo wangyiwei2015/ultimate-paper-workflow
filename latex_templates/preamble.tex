@@ -1,0 +1,57 @@
+% =============================================================
+%  latex_templates/preamble.tex  --  shared packages & settings
+%  Loaded by main.tex BEFORE \begin{document}.
+% =============================================================
+
+% ---- encoding & fonts ---------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+
+% ---- page layout --------------------------------------------
+\usepackage[margin=25mm,top=25mm,bottom=25mm]{geometry}
+\usepackage{microtype}
+\usepackage{setspace}
+
+% ---- math ----------------------------------------------------
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{siunitx}            % \SI{30}{\percent}, \si{\micro\metre}
+\sisetup{per-mode=symbol}
+
+% ---- graphics ------------------------------------------------
+\usepackage{graphicx}
+% Figures produced by Typst live in figs_output/; raw MATLAB SVGs in
+% matlab/svg_out/ are intermediate and normally NOT included directly.
+\graphicspath{{figs_output/}{matlab/svg_out/}}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+
+% ---- tables ---------------------------------------------------
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{tabularx}
+
+% ---- misc -----------------------------------------------------
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[nameinlink]{cleveref}
+
+% ---- bibliography (biblatex + biber) --------------------------
+% Alternative (classic BibTeX): comment the block below and use
+%   \bibliographystyle{unsrt}
+%   \bibliography{latex_refs/refs}
+\usepackage[
+  backend=biber,
+  style=numeric,
+  sorting=none,
+  maxbibnames=99,
+  doi=true,
+  url=true,
+]{biblatex}
+\addbibresource{latex_refs/refs.bib}
+
+% ---- caption style --------------------------------------------
+\captionsetup{font=small, labelfont=bf, justification=justified, singlelinecheck=false}

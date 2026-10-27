@@ -1,0 +1,45 @@
+% =============================================================
+%  latex_refs/refs.bib  --  bibliography database (empty on purpose)
+%  Loaded by:  latex_templates/preamble.tex  (\addbibresource)
+%  Build:      make paper    (biber runs automatically via latexmk)
+%
+%  CONVENTIONS (enforced for every entry):
+%    * Titles in Sentence case -- only the first word, proper nouns and
+%      acronyms are capitalised.  Protect them with an extra { } so
+%      BibTeX/Biber will not lowercase them:  title = {A {PMUT} array ...}
+%    * Use DOI when available; omit the URL if a DOI is present.
+%    * Journal names: full name or the journal's own standard abbreviation,
+%      but be consistent across the whole file.
+%    * Keys:  <firstauthorlastname><year><firstkeyword>
+%             e.g.  wang2023pmut,  chen2024scaln
+% =============================================================
+
+% ---- article -------------------------------------------------
+% @article{key2024,
+%   author  = {Wang, L. and Chen, X. and Smith, J.},
+%   title   = {A {PMUT} array with 30\% {Sc}-doped {AlN} for airborne ultrasound},
+%   journal = {Sensors and Actuators A: Physical},
+%   volume  = {360},
+%   pages   = {114520},
+%   year    = {2024},
+%   doi     = {10.1016/j.sna.2023.114520},
+% }
+
+% ---- inproceedings -------------------------------------------
+% @inproceedings{key2023,
+%   author    = {Wang, L. and Chen, X.},
+%   title     = {Design of a {PIMNT} transducer for pulse-echo imaging},
+%   booktitle = {IEEE International Ultrasonics Symposium (IUS)},
+%   pages     = {1--4},
+%   year      = {2023},
+%   doi       = {10.1109/IUS.2023.1234567},
+% }
+
+% ---- book / thesis -------------------------------------------
+% @book{key2020,
+%   author    = {Author, A.},
+%   title     = {Fundamentals of piezoelectric micromachined ultrasonic transducers},
+%   publisher = {Springer},
+%   address   = {Berlin},
+%   year      = {2020},
+% }
